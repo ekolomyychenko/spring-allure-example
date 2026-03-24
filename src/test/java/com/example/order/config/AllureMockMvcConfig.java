@@ -11,4 +11,9 @@ public class AllureMockMvcConfig {
     public MockMvcBuilderCustomizer allureMockMvcCustomizer() {
         return builder -> builder.alwaysDo(new AllureMockMvcResultHandler());
     }
+
+    @Bean
+    public AllureRepositoryAspect allureRepositoryAspect() {
+        return new AllureRepositoryAspect();
+    }
 }
