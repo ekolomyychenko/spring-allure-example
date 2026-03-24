@@ -9,8 +9,9 @@ import org.springframework.context.annotation.Bean;
 public class AllureMockMvcConfig {
 
     @PostConstruct
-    void instrumentKafka() {
+    void installInstrumentation() {
         AllureKafkaInstrumentation.install();
+        AllureAssertInstrumentation.install();
     }
 
     @Bean
