@@ -1,4 +1,4 @@
-package com.example.order.config;
+package com.example.order.allure;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
@@ -18,12 +18,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class AllureLogsExtension implements TestExecutionListener {
+public class AllureLogsListener implements TestExecutionListener {
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
             .withZone(ZoneId.systemDefault());
 
-    private static final String APPENDER_KEY = AllureLogsExtension.class.getName();
+    private static final String APPENDER_KEY = AllureLogsListener.class.getName();
 
     @Override
     public void beforeTestMethod(TestContext testContext) {

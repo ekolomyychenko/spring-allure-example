@@ -1,4 +1,4 @@
-package com.example.order.config;
+package com.example.order.allure.http;
 
 import io.qameta.allure.Allure;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -8,7 +8,7 @@ import org.springframework.test.web.servlet.ResultHandler;
 
 import java.io.UnsupportedEncodingException;
 
-public class AllureMockMvcResultHandler implements ResultHandler {
+public class AllureHttpResultHandler implements ResultHandler {
 
     @Override
     public void handle(MvcResult result) throws Exception {

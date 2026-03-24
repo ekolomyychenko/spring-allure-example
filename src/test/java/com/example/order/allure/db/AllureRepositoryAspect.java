@@ -1,4 +1,4 @@
-package com.example.order.config;
+package com.example.order.allure.db;
 
 import io.qameta.allure.Allure;
 import org.aspectj.lang.ProceedingJoinPoint;

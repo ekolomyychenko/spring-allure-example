@@ -1,4 +1,4 @@
-package com.example.order.config;
+package com.example.order.allure.kafka;
 
 import io.qameta.allure.Allure;
 import io.qameta.allure.AllureLifecycle;
@@ -11,7 +11,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
-public class PollAdvice {
+public class AllureKafkaPollAdvice {
 
     @Advice.OnMethodExit(suppress = Throwable.class)
     public static void onPoll(@Advice.Return ConsumerRecords<?, ?> records) {

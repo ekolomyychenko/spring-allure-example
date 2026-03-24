@@ -1,4 +1,4 @@
-package com.example.order.config;
+package com.example.order.allure.mock;
 
 import io.qameta.allure.Allure;
 import org.mockito.invocation.Invocation;
@@ -8,11 +8,11 @@ import org.mockito.mock.MockCreationSettings;
 
 import java.lang.reflect.Method;
 
-public class AllureMockHandler<T> implements MockHandler<T> {
+public class AllureMockitoHandler<T> implements MockHandler<T> {
 
     private final MockHandler<T> delegate;
 
-    public AllureMockHandler(MockHandler<T> delegate) {
+    public AllureMockitoHandler(MockHandler<T> delegate) {
         this.delegate = delegate;
     }
 

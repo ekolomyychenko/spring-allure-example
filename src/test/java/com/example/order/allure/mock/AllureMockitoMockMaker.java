@@ -1,4 +1,4 @@
-package com.example.order.config;
+package com.example.order.allure.mock;
 
 import org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker;
 import org.mockito.invocation.MockHandler;
@@ -7,24 +7,24 @@ import org.mockito.plugins.MockMaker;
 
 import java.util.Optional;
 
-public class AllureMockMaker implements MockMaker {
+public class AllureMockitoMockMaker implements MockMaker {
 
     private final InlineByteBuddyMockMaker delegate = new InlineByteBuddyMockMaker();
 
     @Override
     public <T> T createMock(MockCreationSettings<T> settings, MockHandler handler) {
-        return delegate.createMock(settings, new AllureMockHandler<>(handler));
+        return delegate.createMock(settings, new AllureMockitoHandler<>(handler));
     }
 
     @Override
     public <T> Optional<T> createSpy(MockCreationSettings<T> settings, MockHandler handler, T spiedInstance) {
-        return delegate.createSpy(settings, new AllureMockHandler<>(handler), spiedInstance);
+        return delegate.createSpy(settings, new AllureMockitoHandler<>(handler), spiedInstance);
     }
 
     @Override
     public MockHandler getHandler(Object mock) {
         MockHandler handler = delegate.getHandler(mock);
-        if (handler instanceof AllureMockHandler) {
+        if (handler instanceof AllureMockitoHandler) {
             return handler;
         }
         return handler;
@@ -32,7 +32,7 @@ public class AllureMockMaker implements MockMaker {
 
     @Override
     public void resetMock(Object mock, MockHandler newHandler, MockCreationSettings settings) {
-        delegate.resetMock(mock, new AllureMockHandler<>(newHandler), settings);
+        delegate.resetMock(mock, new AllureMockitoHandler<>(newHandler), settings);
     }
 
     @Override

@@ -1,1 +1,1 @@
-com.example.order.config.AllureMockMaker
+com.example.order.allure.mock.AllureMockitoMockMaker

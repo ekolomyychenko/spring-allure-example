@@ -1,4 +1,4 @@
-package com.example.order.config;
+package com.example.order.allure.kafka;
 
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
@@ -18,7 +18,7 @@ public class AllureKafkaInstrumentation {
                     .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
                     .type(ElementMatchers.named("org.apache.kafka.clients.consumer.KafkaConsumer"))
                     .transform((builder, type, cl, module, pd) -> builder
-                            .visit(Advice.to(PollAdvice.class)
+                            .visit(Advice.to(AllureKafkaPollAdvice.class)
                                     .on(ElementMatchers.named("poll")
                                             .and(ElementMatchers.takesArgument(0, java.time.Duration.class))))
                     )

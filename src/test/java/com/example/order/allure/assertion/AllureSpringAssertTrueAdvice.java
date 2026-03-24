@@ -1,9 +1,9 @@
-package com.example.order.config;
+package com.example.order.allure.assertion;
 
 import io.qameta.allure.Allure;
 import net.bytebuddy.asm.Advice;
 
-public class SpringAssertTrueAdvice {
+public class AllureSpringAssertTrueAdvice {
 
     @Advice.OnMethodExit(suppress = Throwable.class)
     public static void onAssertTrue(@Advice.Argument(0) String message) {

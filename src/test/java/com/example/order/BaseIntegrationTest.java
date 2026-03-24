@@ -1,6 +1,6 @@
 package com.example.order;
 
-import com.example.order.config.AllureMockMvcConfig;
+import com.example.order.allure.AllureTestConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -14,7 +14,7 @@ import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@Import(AllureMockMvcConfig.class)
+@Import(AllureTestConfig.class)
 @Testcontainers
 public abstract class BaseIntegrationTest {
 
