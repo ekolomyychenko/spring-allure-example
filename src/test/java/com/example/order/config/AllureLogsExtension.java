@@ -5,6 +5,9 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
 import io.qameta.allure.Allure;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.PropertySource;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.TestExecutionListener;
 import org.slf4j.LoggerFactory;
@@ -12,9 +15,8 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class AllureLogsExtension implements TestExecutionListener {
 
@@ -25,6 +27,8 @@ public class AllureLogsExtension implements TestExecutionListener {
 
     @Override
     public void beforeTestMethod(TestContext testContext) {
+        attachConfig(testContext);
+
         CapturingAppender appender = new CapturingAppender();
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
         appender.setContext(loggerContext);
@@ -51,6 +55,31 @@ public class AllureLogsExtension implements TestExecutionListener {
         List<String> lines = appender.getLines();
         Allure.addAttachment("Application Logs", "text/plain",
                 lines.isEmpty() ? "No logs captured" : String.join("\n", lines));
+    }
+
+    private void attachConfig(TestContext testContext) {
+        ConfigurableEnvironment env = (ConfigurableEnvironment) testContext
+                .getApplicationContext().getEnvironment();
+
+        Set<String> keys = new TreeSet<>();
+        for (PropertySource<?> ps : env.getPropertySources()) {
+            if (ps instanceof EnumerablePropertySource<?> eps) {
+                Collections.addAll(keys, eps.getPropertyNames());
+            }
+        }
+
+        final String config = keys.stream()
+                .filter(k -> !k.toLowerCase().contains("password")
+                        && !k.toLowerCase().contains("secret")
+                        && !k.toLowerCase().contains("credential"))
+                .filter(k -> k.startsWith("spring.") || k.startsWith("pricing-service.")
+                        || k.startsWith("server.") || k.startsWith("logging."))
+                .map(k -> k + "=" + env.getProperty(k))
+                .collect(Collectors.joining("\n"));
+
+        Allure.step("Configuration", () ->
+                Allure.addAttachment("Properties", "text/plain",
+                        config.isEmpty() ? "No relevant properties" : config));
     }
 
     private static class CapturingAppender extends AppenderBase<ILoggingEvent> {
