@@ -55,6 +55,17 @@ public class AllureAssertInstrumentation {
                                             .and(takesArguments(2))))
                     )
                     .installOn(instrumentation);
+            // Hamcrest MatcherAssert.assertThat(String reason, Object actual, Matcher matcher)
+            new AgentBuilder.Default()
+                    .disableClassFormatChanges()
+                    .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+                    .type(named("org.hamcrest.MatcherAssert"))
+                    .transform((builder, type, cl, module, pd) -> builder
+                            .visit(Advice.to(HamcrestAssertAdvice.class)
+                                    .on(named("assertThat")
+                                            .and(takesArguments(3))))
+                    )
+                    .installOn(instrumentation);
         } catch (Throwable ignored) {
         }
     }
