@@ -57,7 +57,7 @@ mvn allure:serve
 | Запросы к БД (репозитории)         | Spring AOP аспект                                | `DB: OrderRepository.findAll`                        |
 | Kafka consumer (poll)              | ByteBuddy-инструментирование `KafkaConsumer`     | `Kafka poll → 1 record(s)`                           |
 | AssertJ-ассерты                    | ByteBuddy-инструментирование `AbstractAssert`    | `Assert: laptop isEqualTo laptop`                    |
-| MockMvc-ассерты (andExpect)        | ByteBuddy-инструментирование `AssertionErrors`   | `Assert: Status = 201`                               |
+| MockMvc-ассерты (andExpect)        | ByteBuddy-инструментирование `AssertionErrors`   | `Assert: Status expected 201 = 201`                  |
 | Hamcrest-ассерты                   | ByteBuddy-инструментирование `MatcherAssert`     | `Assert: $.productName laptop is "laptop"`           |
 | Конфигурация приложения            | Spring `TestExecutionListener`                   | Степ `Configuration` с пропертями                    |
 | Логи приложения                    | Spring `TestExecutionListener` + Logback appender | Аттач `Application Logs`                             |
