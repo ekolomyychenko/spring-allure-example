@@ -8,7 +8,6 @@ import net.bytebuddy.asm.Advice;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 public class AllureKafkaPollAdvice {

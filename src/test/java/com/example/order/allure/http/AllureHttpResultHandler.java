@@ -55,7 +55,7 @@ public class AllureHttpResultHandler implements ResultHandler {
         }
 
         String body = resp.getContentAsString();
-        if (!body.isEmpty()) {
+        if (body != null && !body.isEmpty()) {
             sb.append("\n").append(body);
         }
         return sb.toString();

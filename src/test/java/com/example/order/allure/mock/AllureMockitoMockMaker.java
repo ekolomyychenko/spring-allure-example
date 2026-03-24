@@ -23,11 +23,7 @@ public class AllureMockitoMockMaker implements MockMaker {
 
     @Override
     public MockHandler getHandler(Object mock) {
-        MockHandler handler = delegate.getHandler(mock);
-        if (handler instanceof AllureMockitoHandler) {
-            return handler;
-        }
-        return handler;
+        return delegate.getHandler(mock);
     }
 
     @Override

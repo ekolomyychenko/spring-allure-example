@@ -97,7 +97,7 @@ public class AllureLogsListener implements TestExecutionListener {
         }
 
         public List<String> getLines() {
-            return lines;
+            return List.copyOf(lines);
         }
     }
 }

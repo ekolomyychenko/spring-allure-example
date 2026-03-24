@@ -11,7 +11,7 @@ public class AllureSpringAssertAdvice {
             @Advice.Argument(1) Object expected,
             @Advice.Argument(2) Object actual) {
         try {
-            Allure.step("Assert: " + message + " = " + actual);
+            Allure.step("Assert: " + message + " expected " + expected + " = " + actual);
         } catch (Throwable ignored) {
         }
     }

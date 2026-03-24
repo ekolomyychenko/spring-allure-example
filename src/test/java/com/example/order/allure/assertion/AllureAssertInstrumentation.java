@@ -3,7 +3,6 @@ package com.example.order.allure.assertion;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.matcher.ElementMatchers;
 import org.assertj.core.api.AbstractAssert;
 
 import java.lang.instrument.Instrumentation;
@@ -16,10 +15,11 @@ public class AllureAssertInstrumentation {
         try {
             Instrumentation instrumentation = ByteBuddyAgent.install();
 
-            // AssertJ assertions
             new AgentBuilder.Default()
                     .disableClassFormatChanges()
                     .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+
+                    // AssertJ
                     .type(isSubTypeOf(AbstractAssert.class))
                     .transform((builder, type, cl, module, pd) -> builder
                             .visit(Advice.to(AllureAssertJAdvice.class)
@@ -39,32 +39,23 @@ public class AllureAssertInstrumentation {
                                             .or(named("isNotEmpty"))
                                     ))
                     )
-                    .installOn(instrumentation);
 
-            // Spring MockMvc assertions (AssertionErrors.assertEquals / assertTrue)
-            new AgentBuilder.Default()
-                    .disableClassFormatChanges()
-                    .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+                    // Spring AssertionErrors
                     .type(named("org.springframework.test.util.AssertionErrors"))
                     .transform((builder, type, cl, module, pd) -> builder
                             .visit(Advice.to(AllureSpringAssertAdvice.class)
-                                    .on(named("assertEquals")
-                                            .and(takesArguments(3))))
+                                    .on(named("assertEquals").and(takesArguments(3))))
                             .visit(Advice.to(AllureSpringAssertTrueAdvice.class)
-                                    .on(named("assertTrue")
-                                            .and(takesArguments(2))))
+                                    .on(named("assertTrue").and(takesArguments(2))))
                     )
-                    .installOn(instrumentation);
-            // Hamcrest MatcherAssert.assertThat(String reason, Object actual, Matcher matcher)
-            new AgentBuilder.Default()
-                    .disableClassFormatChanges()
-                    .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+
+                    // Hamcrest MatcherAssert
                     .type(named("org.hamcrest.MatcherAssert"))
                     .transform((builder, type, cl, module, pd) -> builder
                             .visit(Advice.to(AllureHamcrestAdvice.class)
-                                    .on(named("assertThat")
-                                            .and(takesArguments(3))))
+                                    .on(named("assertThat").and(takesArguments(3))))
                     )
+
                     .installOn(instrumentation);
         } catch (Throwable ignored) {
         }

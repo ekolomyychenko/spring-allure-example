@@ -7,12 +7,16 @@ import org.aspectj.lang.annotation.Aspect;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Aspect
 public class AllureRepositoryAspect {
+
+    private final Map<Class<?>, Field[]> fieldCache = new ConcurrentHashMap<>();
 
     @Around("execution(* org.springframework.data.repository.Repository+.*(..))")
     public Object logRepositoryCall(ProceedingJoinPoint pjp) throws Throwable {
@@ -90,9 +94,16 @@ public class AllureRepositoryAspect {
     }
 
     private String describeEntity(Object obj, Class<?> clazz) {
+        Field[] fields = fieldCache.computeIfAbsent(clazz, c -> {
+            Field[] declared = c.getDeclaredFields();
+            for (Field f : declared) {
+                f.setAccessible(true);
+            }
+            return declared;
+        });
+
         StringJoiner sj = new StringJoiner(", ", clazz.getSimpleName() + "{", "}");
-        for (Field field : clazz.getDeclaredFields()) {
-            field.setAccessible(true);
+        for (Field field : fields) {
             try {
                 sj.add(field.getName() + "=" + field.get(obj));
             } catch (IllegalAccessException e) {
