@@ -13,7 +13,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -31,8 +31,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Epic("Order Service")
-@Feature("Order Management")
-class OrderIntegrationTest extends BaseIntegrationTest {
+@Feature("MockMvc + Mockito + JPA + Kafka")
+class OrderMockMvcMockitoTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -40,7 +40,7 @@ class OrderIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private OrderRepository orderRepository;
 
-    @MockBean
+    @MockitoBean
     private PricingClient pricingClient;
 
     @AfterEach
@@ -51,7 +51,7 @@ class OrderIntegrationTest extends BaseIntegrationTest {
     @Test
     @Story("Create Order")
     @Severity(SeverityLevel.CRITICAL)
-    @DisplayName("POST /api/orders — создание заказа и сохранение в БД")
+    @DisplayName("POST /api/orders — создание заказа через MockMvc + Mockito, проверка в БД")
     void shouldCreateOrderAndPersistToDb() throws Exception {
         when(pricingClient.getPrice("laptop")).thenReturn(new BigDecimal("999.99"));
 
@@ -76,7 +76,7 @@ class OrderIntegrationTest extends BaseIntegrationTest {
     @Test
     @Story("Get Order")
     @Severity(SeverityLevel.CRITICAL)
-    @DisplayName("GET /api/orders/{id} — получение заказа по ID")
+    @DisplayName("GET /api/orders/{id} — получение заказа через MockMvc")
     void shouldReturnOrderById() throws Exception {
         Order order = new Order();
         order.setProductName("phone");
@@ -95,7 +95,7 @@ class OrderIntegrationTest extends BaseIntegrationTest {
     @Test
     @Story("Get Order")
     @Severity(SeverityLevel.NORMAL)
-    @DisplayName("GET /api/orders/{id} — 404 для несуществующего заказа")
+    @DisplayName("GET /api/orders/{id} — 404 для несуществующего заказа через MockMvc")
     void shouldReturn404ForNonExistentOrder() throws Exception {
         mockMvc.perform(get("/api/orders/{id}", 99999))
                 .andExpect(status().isNotFound());
@@ -104,7 +104,7 @@ class OrderIntegrationTest extends BaseIntegrationTest {
     @Test
     @Story("Create Order")
     @Severity(SeverityLevel.NORMAL)
-    @DisplayName("POST /api/orders — 400 при невалидном запросе")
+    @DisplayName("POST /api/orders — 400 при невалидном запросе через MockMvc")
     void shouldReturn400ForInvalidRequest() throws Exception {
         mockMvc.perform(post("/api/orders")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -117,7 +117,7 @@ class OrderIntegrationTest extends BaseIntegrationTest {
     @Test
     @Story("Kafka Integration")
     @Severity(SeverityLevel.CRITICAL)
-    @DisplayName("POST /api/orders — отправка события в Kafka при создании заказа")
+    @DisplayName("POST /api/orders — отправка события в Kafka через MockMvc + Mockito")
     void shouldSendKafkaEventOnOrderCreation() throws Exception {
         when(pricingClient.getPrice(anyString())).thenReturn(new BigDecimal("100.00"));
 

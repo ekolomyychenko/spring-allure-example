@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
 
 @Epic("Order Service")
-@Feature("Order Management — WireMock + RestAssured")
+@Feature("WireMock + RestAssured + JPA")
 class OrderWireMockRestAssuredTest extends BaseIntegrationTest {
 
     static WireMockServer wireMockServer = new WireMockServer(0);
