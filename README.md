@@ -6,7 +6,7 @@ This project shows how to wire up detailed Allure reporting into integration tes
 
 ## Stack
 
-- Java 17, Spring Boot 3.2
+- Java 21, Spring Boot 3.5
 - PostgreSQL — order storage
 - Kafka — fires events on order creation
 - REST client (RestTemplate) — outbound integration with a pricing service
@@ -25,17 +25,21 @@ Get an order by ID.
 
 ## Tests
 
-Integration tests live in `src/test/java/com/example/order/OrderIntegrationTest.java`.
+Integration tests live in `src/test/java/com/example/order/`:
+- `OrderMockMvcMockitoTest` — MockMvc + Mockito (`@MockBean`) for the pricing client
+- `OrderWireMockRestAssuredTest` — RestAssured + WireMock for the pricing client
 
 **What's used:**
 - **Testcontainers** — spins up PostgreSQL and Kafka in Docker
-- **MockMvc** — HTTP calls to endpoints
+- **MockMvc** — HTTP calls to endpoints (`OrderMockMvcMockitoTest`)
+- **RestAssured** — HTTP calls to endpoints (`OrderWireMockRestAssuredTest`)
+- **WireMock** — stubs the external pricing service
 - **Spring Data JPA repositories** — DB state verification after calls
-- **Mockito (`@MockBean`)** — mocks `PricingClient` (outbound REST integration)
+- **Mockito (`@MockBean`)** — mocks `PricingClient` (`OrderMockMvcMockitoTest`)
 - **KafkaConsumer** — verifies messages published to the topic
 
 **Prerequisites:**
-- Java 17+
+- Java 21+
 - Maven 3.8+
 - Docker (Testcontainers needs it for PostgreSQL and Kafka)
 
@@ -70,6 +74,9 @@ All reporting code lives in `src/test/java/com/example/order/allure/`. Tests and
 | What                              | How it's intercepted                             | Example step in report                               |
 |-----------------------------------|--------------------------------------------------|------------------------------------------------------|
 | HTTP requests/responses (MockMvc) | `MockMvcBuilderCustomizer` + `ResultHandler`     | `POST /api/orders → 201`                             |
+| HTTP requests/responses (RestAssured) | `Filter` implementation                      | `POST /api/orders → 201`                             |
+| WireMock stubs                    | Spring `TestExecutionListener` + reflection      | `WireMock stub: GET /api/prices → 200`               |
+| WireMock requests/responses       | Spring `TestExecutionListener` + `RequestListener` | `WireMock request: GET /api/prices?product=laptop → 200` |
 | Mockito mock calls                | Custom `MockMaker` (SPI plugin)                  | `Mock: pricingClient.getPrice("laptop") → 999.99`    |
 | DB queries (repositories)         | Spring AOP aspect                                | `DB: OrderRepository.findAll`                         |
 | Kafka consumer (poll)             | ByteBuddy instrumentation of `KafkaConsumer`     | `Kafka poll → 1 record(s)`                            |
@@ -82,6 +89,8 @@ All reporting code lives in `src/test/java/com/example/order/allure/`. Tests and
 ### How it works
 
 - **MockMvc** — `AllureHttpResultHandler` hooks into `MockMvcBuilderCustomizer.alwaysDo()` and catches every request
+- **RestAssured** — `AllureRestAssuredFilter` registers globally in `AllureTestConfig` and intercepts every RestAssured request/response
+- **WireMock** — `AllureWireMockTestListener` registers via `META-INF/spring.factories` as a `TestExecutionListener`, discovers `WireMockServer` fields via reflection, adds a `RequestListener` for request/response logging, and reads registered stubs from the server after each test
 - **Mockito** — `AllureMockitoMockMaker` replaces the default `MockMaker` via the SPI file `mockito-extensions/org.mockito.plugins.MockMaker`. Wraps the `MockHandler` to see all mock invocations
 - **DB** — `AllureRepositoryAspect` attaches to `Repository+` via Spring AOP. Walks the call stack to only log calls coming from tests, not from service code
 - **Kafka** — the ByteBuddy agent is already loaded by Mockito, so `AllureKafkaInstrumentation` piggybacks on it and patches `KafkaConsumer.poll()` right in the bytecode
@@ -104,12 +113,14 @@ src/main/java/com/example/order/
 
 src/test/java/com/example/order/
 ├── BaseIntegrationTest.java
-├── OrderIntegrationTest.java
+├── OrderMockMvcMockitoTest.java
+├── OrderWireMockRestAssuredTest.java
 └── allure/
     ├── AllureTestConfig.java            — entry point, registers all components
     ├── AllureLogsListener.java          — app logs + configuration
     ├── http/
-    │   └── AllureHttpResultHandler.java — intercepts MockMvc requests
+    │   ├── AllureHttpResultHandler.java — intercepts MockMvc requests
+    │   └── AllureRestAssuredFilter.java — intercepts RestAssured requests
     ├── mock/
     │   ├── AllureMockitoMockMaker.java  — SPI plugin for Mockito
     │   └── AllureMockitoHandler.java    — logs mock invocations
@@ -118,6 +129,9 @@ src/test/java/com/example/order/
     ├── kafka/
     │   ├── AllureKafkaInstrumentation.java — ByteBuddy instrumentation
     │   └── AllureKafkaPollAdvice.java     — advice for KafkaConsumer.poll()
+    ├── wiremock/
+    │   ├── AllureWireMockTestListener.java — discovers servers, logs stubs + requests
+    │   └── AllureWireMockListener.java     — buffers request/response pairs
     └── assertion/
         ├── AllureAssertInstrumentation.java   — ByteBuddy instrumentation
         ├── AllureAssertJAdvice.java            — AssertJ
