@@ -3,7 +3,10 @@ package com.example.order.allure;
 import com.example.order.allure.assertion.AllureAssertInstrumentation;
 import com.example.order.allure.db.AllureRepositoryAspect;
 import com.example.order.allure.http.AllureHttpResultHandler;
+import com.example.order.allure.http.AllureRestAssuredFilter;
 import com.example.order.allure.kafka.AllureKafkaInstrumentation;
+import com.example.order.allure.wiremock.AllureWireMockInstrumentation;
+import io.restassured.RestAssured;
 import jakarta.annotation.PostConstruct;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcBuilderCustomizer;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -16,6 +19,8 @@ public class AllureTestConfig {
     void installInstrumentation() {
         AllureKafkaInstrumentation.install();
         AllureAssertInstrumentation.install();
+        AllureWireMockInstrumentation.install();
+        RestAssured.filters(new AllureRestAssuredFilter());
     }
 
     @Bean
