@@ -25,13 +25,17 @@ Get an order by ID.
 
 ## Tests
 
-Integration tests live in `src/test/java/com/example/order/OrderIntegrationTest.java`.
+Integration tests live in `src/test/java/com/example/order/`:
+- `OrderIntegrationTest` — MockMvc + Mockito (`@MockBean`) for the pricing client
+- `OrderWireMockRestAssuredTest` — RestAssured + WireMock for the pricing client
 
 **What's used:**
 - **Testcontainers** — spins up PostgreSQL and Kafka in Docker
-- **MockMvc** — HTTP calls to endpoints
+- **MockMvc** — HTTP calls to endpoints (`OrderIntegrationTest`)
+- **RestAssured** — HTTP calls to endpoints (`OrderWireMockRestAssuredTest`)
+- **WireMock** — stubs the external pricing service
 - **Spring Data JPA repositories** — DB state verification after calls
-- **Mockito (`@MockBean`)** — mocks `PricingClient` (outbound REST integration)
+- **Mockito (`@MockBean`)** — mocks `PricingClient` (`OrderIntegrationTest`)
 - **KafkaConsumer** — verifies messages published to the topic
 
 **Prerequisites:**
