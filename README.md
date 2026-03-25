@@ -1,94 +1,94 @@
 # Order Service
 
-Микросервис управления заказами на Spring Boot 3.
+Order management microservice on Spring Boot 3.
 
-В этом проекте показано, как прикрутить детальное Allure-логирование к интеграционным тестам, **не трогая код тестов и приложения**. Перехватчики подключаются через SPI-плагины, Spring AOP, ByteBuddy и Spring TestExecutionListener.
+This project shows how to wire up detailed Allure reporting into integration tests **without touching test or application code**. All interceptors kick in automatically via SPI plugins, Spring AOP, ByteBuddy instrumentation and Spring TestExecutionListener.
 
-## Стек
+## Stack
 
 - Java 17, Spring Boot 3.2
-- PostgreSQL — хранение заказов
-- Kafka — отправка событий при создании заказа
-- REST-клиент (RestTemplate) — исходящая интеграция с сервисом цен
+- PostgreSQL — order storage
+- Kafka — fires events on order creation
+- REST client (RestTemplate) — outbound integration with a pricing service
 
 ## API
 
 ### POST /api/orders
-Создать заказ. Ходит за ценой в pricing-сервис, кладёт заказ в БД и кидает событие в Kafka-топик `order-events`.
+Create an order. Calls the pricing service for a price, persists the order to DB and pushes an event to the `order-events` Kafka topic.
 
 ```json
 {"productName": "laptop", "quantity": 2}
 ```
 
 ### GET /api/orders/{id}
-Получить заказ по ID.
+Get an order by ID.
 
-## Тесты
+## Tests
 
-Интеграционные тесты в `src/test/java/com/example/order/OrderIntegrationTest.java`.
+Integration tests live in `src/test/java/com/example/order/OrderIntegrationTest.java`.
 
-**Что используется:**
-- **Testcontainers** — поднимает PostgreSQL и Kafka в Docker
-- **MockMvc** — HTTP-вызовы эндпоинтов
-- **Spring Data JPA репозитории** — проверка состояния БД после вызовов
-- **Mockito (`@MockBean`)** — мок `PricingClient` (исходящая REST-интеграция)
-- **KafkaConsumer** — проверка отправки сообщений в топик
+**What's used:**
+- **Testcontainers** — spins up PostgreSQL and Kafka in Docker
+- **MockMvc** — HTTP calls to endpoints
+- **Spring Data JPA repositories** — DB state verification after calls
+- **Mockito (`@MockBean`)** — mocks `PricingClient` (outbound REST integration)
+- **KafkaConsumer** — verifies messages published to the topic
 
-**Требования:**
+**Prerequisites:**
 - Java 17+
 - Maven 3.8+
-- Docker (Testcontainers поднимает PostgreSQL и Kafka)
+- Docker (Testcontainers needs it for PostgreSQL and Kafka)
 
-Клонировать и перейти в проект:
+Clone and enter the project:
 ```bash
 git clone <repo-url>
 cd spring-allure-example
 ```
 
-Запуск тестов (Docker должен быть запущен):
+Run tests (Docker must be running):
 ```bash
 mvn clean test
 ```
 
-Генерация и открытие Allure-отчёта в браузере:
+Generate and open Allure report in browser:
 ```bash
 mvn allure:serve
 ```
 
-## Allure-логирование без изменения тестов
+## Allure reporting without changing tests
 
-Весь код в `src/test/java/com/example/order/allure/`. Тесты и прод-код не затронуты.
+All reporting code lives in `src/test/java/com/example/order/allure/`. Tests and production code are untouched.
 
-### Пример отчёта
+### Report example
 
 ![Allure Report](docs/Снимок%20экрана%202026-03-25%20в%2008.38.45.png)
 
-![Allure Report — детализация степов](docs/Снимок%20экрана%202026-03-25%20в%2008.41.23.png)
+![Allure Report — step details](docs/Снимок%20экрана%202026-03-25%20в%2008.41.23.png)
 
-### Что логируется
+### What gets logged
 
-| Что                               | Как перехватывается                              | Пример степа в отчёте                              |
-|------------------------------------|--------------------------------------------------|-----------------------------------------------------|
-| HTTP-запросы/ответы (MockMvc)      | `MockMvcBuilderCustomizer` + `ResultHandler`     | `POST /api/orders → 201`                            |
-| Вызовы Mockito-моков               | Кастомный `MockMaker` (SPI-плагин)               | `Mock: pricingClient.getPrice("laptop") → 999.99`   |
-| Запросы к БД (репозитории)         | Spring AOP аспект                                | `DB: OrderRepository.findAll`                        |
-| Kafka consumer (poll)              | ByteBuddy-инструментирование `KafkaConsumer`     | `Kafka poll → 1 record(s)`                           |
-| AssertJ-ассерты                    | ByteBuddy-инструментирование `AbstractAssert`    | `Assert: laptop isEqualTo laptop`                    |
-| MockMvc-ассерты (andExpect)        | ByteBuddy-инструментирование `AssertionErrors`   | `Assert: Status expected 201 = 201`                  |
-| Hamcrest-ассерты                   | ByteBuddy-инструментирование `MatcherAssert`     | `Assert: $.productName laptop is "laptop"`           |
-| Конфигурация приложения            | Spring `TestExecutionListener`                   | Степ `Configuration` с пропертями                    |
-| Логи приложения                    | Spring `TestExecutionListener` + Logback appender | Аттач `Application Logs`                             |
+| What                              | How it's intercepted                             | Example step in report                               |
+|-----------------------------------|--------------------------------------------------|------------------------------------------------------|
+| HTTP requests/responses (MockMvc) | `MockMvcBuilderCustomizer` + `ResultHandler`     | `POST /api/orders → 201`                             |
+| Mockito mock calls                | Custom `MockMaker` (SPI plugin)                  | `Mock: pricingClient.getPrice("laptop") → 999.99`    |
+| DB queries (repositories)         | Spring AOP aspect                                | `DB: OrderRepository.findAll`                         |
+| Kafka consumer (poll)             | ByteBuddy instrumentation of `KafkaConsumer`     | `Kafka poll → 1 record(s)`                            |
+| AssertJ assertions                | ByteBuddy instrumentation of `AbstractAssert`    | `Assert: laptop isEqualTo laptop`                     |
+| MockMvc assertions (andExpect)    | ByteBuddy instrumentation of `AssertionErrors`   | `Assert: Status expected 201 = 201`                   |
+| Hamcrest assertions               | ByteBuddy instrumentation of `MatcherAssert`     | `Assert: $.productName laptop is "laptop"`            |
+| App configuration                 | Spring `TestExecutionListener`                   | `Configuration` step with properties                  |
+| App logs                          | Spring `TestExecutionListener` + Logback appender | `Application Logs` attachment                         |
 
-### Как это работает
+### How it works
 
-- **MockMvc** — `AllureHttpResultHandler` садится на `MockMvcBuilderCustomizer.alwaysDo()` и ловит каждый запрос
-- **Mockito** — `AllureMockitoMockMaker` подменяет стандартный `MockMaker` через SPI-файл `mockito-extensions/org.mockito.plugins.MockMaker`. Оборачивает `MockHandler`, чтобы видеть все вызовы моков
-- **БД** — `AllureRepositoryAspect` цепляется к `Repository+` через Spring AOP. Фильтрует по стеку вызовов — логирует только то, что дёргается из тестов, а не из сервисов
-- **Kafka** — ByteBuddy агент уже загружен Mockito, `AllureKafkaInstrumentation` пользуется этим и патчит `KafkaConsumer.poll()` прямо в байткоде
-- **Ассерты** — `AllureAssertInstrumentation` тем же способом патчит AssertJ (`AbstractAssert`), Spring (`AssertionErrors`) и Hamcrest (`MatcherAssert`)
-- **Логи и конфиг** — `AllureLogsListener` подключается через `META-INF/spring.factories` как `TestExecutionListener`, вешает Logback-appender на время теста и снимает после
+- **MockMvc** — `AllureHttpResultHandler` hooks into `MockMvcBuilderCustomizer.alwaysDo()` and catches every request
+- **Mockito** — `AllureMockitoMockMaker` replaces the default `MockMaker` via the SPI file `mockito-extensions/org.mockito.plugins.MockMaker`. Wraps the `MockHandler` to see all mock invocations
+- **DB** — `AllureRepositoryAspect` attaches to `Repository+` via Spring AOP. Walks the call stack to only log calls coming from tests, not from service code
+- **Kafka** — the ByteBuddy agent is already loaded by Mockito, so `AllureKafkaInstrumentation` piggybacks on it and patches `KafkaConsumer.poll()` right in the bytecode
+- **Assertions** — `AllureAssertInstrumentation` patches AssertJ (`AbstractAssert`), Spring (`AssertionErrors`) and Hamcrest (`MatcherAssert`) the same way
+- **Logs & config** — `AllureLogsListener` registers via `META-INF/spring.factories` as a `TestExecutionListener`, attaches a Logback appender for the duration of each test
 
-## Структура
+## Structure
 
 ```
 src/main/java/com/example/order/
@@ -106,20 +106,20 @@ src/test/java/com/example/order/
 ├── BaseIntegrationTest.java
 ├── OrderIntegrationTest.java
 └── allure/
-    ├── AllureTestConfig.java            — точка входа, регистрация всех компонентов
-    ├── AllureLogsListener.java          — логи приложения + конфигурация
+    ├── AllureTestConfig.java            — entry point, registers all components
+    ├── AllureLogsListener.java          — app logs + configuration
     ├── http/
-    │   └── AllureHttpResultHandler.java — перехват MockMvc запросов
+    │   └── AllureHttpResultHandler.java — intercepts MockMvc requests
     ├── mock/
-    │   ├── AllureMockitoMockMaker.java  — SPI-плагин для Mockito
-    │   └── AllureMockitoHandler.java    — логирование вызовов моков
+    │   ├── AllureMockitoMockMaker.java  — SPI plugin for Mockito
+    │   └── AllureMockitoHandler.java    — logs mock invocations
     ├── db/
-    │   └── AllureRepositoryAspect.java  — AOP-перехват репозиториев
+    │   └── AllureRepositoryAspect.java  — AOP intercept for repositories
     ├── kafka/
-    │   ├── AllureKafkaInstrumentation.java — ByteBuddy-инструментирование
-    │   └── AllureKafkaPollAdvice.java     — advice для KafkaConsumer.poll()
+    │   ├── AllureKafkaInstrumentation.java — ByteBuddy instrumentation
+    │   └── AllureKafkaPollAdvice.java     — advice for KafkaConsumer.poll()
     └── assertion/
-        ├── AllureAssertInstrumentation.java   — ByteBuddy-инструментирование
+        ├── AllureAssertInstrumentation.java   — ByteBuddy instrumentation
         ├── AllureAssertJAdvice.java            — AssertJ
         ├── AllureSpringAssertAdvice.java       — Spring assertEquals
         ├── AllureSpringAssertTrueAdvice.java   — Spring assertTrue
