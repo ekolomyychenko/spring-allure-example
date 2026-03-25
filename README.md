@@ -2,7 +2,7 @@
 
 Микросервис управления заказами на Spring Boot 3.
 
-Проект является примером подключения детального Allure-логирования к интеграционным тестам **без изменения кода тестов и приложения**. Все перехватчики работают автоматически через SPI-плагины, Spring AOP, ByteBuddy-инструментирование и Spring TestExecutionListener.
+В этом проекте показано, как прикрутить детальное Allure-логирование к интеграционным тестам, **не трогая код тестов и приложения**. Перехватчики подключаются через SPI-плагины, Spring AOP, ByteBuddy и Spring TestExecutionListener.
 
 ## Стек
 
@@ -14,7 +14,7 @@
 ## API
 
 ### POST /api/orders
-Создать заказ. Получает цену из внешнего сервиса, сохраняет в БД, отправляет событие в Kafka-топик `order-events`.
+Создать заказ. Ходит за ценой в pricing-сервис, кладёт заказ в БД и кидает событие в Kafka-топик `order-events`.
 
 ```json
 {"productName": "laptop", "quantity": 2}
@@ -57,7 +57,7 @@ mvn allure:serve
 
 ## Allure-логирование без изменения тестов
 
-Весь код логирования находится в `src/test/java/com/example/order/allure/` и подключается автоматически — тесты и приложение не модифицируются.
+Весь код в `src/test/java/com/example/order/allure/`. Тесты и прод-код не затронуты.
 
 ### Пример отчёта
 
@@ -81,12 +81,12 @@ mvn allure:serve
 
 ### Как это работает
 
-- **MockMvc** — `AllureHttpResultHandler` регистрируется через `MockMvcBuilderCustomizer.alwaysDo()`, срабатывает на каждый запрос автоматически
-- **Mockito** — `AllureMockitoMockMaker` подменяет стандартный `MockMaker` через SPI-файл `mockito-extensions/org.mockito.plugins.MockMaker`, оборачивает `MockHandler` каждого мока для логирования вызовов
-- **БД** — `AllureRepositoryAspect` перехватывает вызовы `Repository+` через Spring AOP, логирует только вызовы из тестового кода (не из сервисов приложения)
-- **Kafka** — `AllureKafkaInstrumentation` через ByteBuddy агент (уже загружен Mockito) инструментирует `KafkaConsumer.poll()`, вставляя Allure-степы в байткод
-- **Ассерты** — `AllureAssertInstrumentation` аналогично инструментирует AssertJ, Spring `AssertionErrors` и Hamcrest `MatcherAssert`
-- **Логи и конфиг** — `AllureLogsListener` регистрируется как Spring `TestExecutionListener` через `META-INF/spring.factories`, подключает Logback-appender на время каждого теста
+- **MockMvc** — `AllureHttpResultHandler` садится на `MockMvcBuilderCustomizer.alwaysDo()` и ловит каждый запрос
+- **Mockito** — `AllureMockitoMockMaker` подменяет стандартный `MockMaker` через SPI-файл `mockito-extensions/org.mockito.plugins.MockMaker`. Оборачивает `MockHandler`, чтобы видеть все вызовы моков
+- **БД** — `AllureRepositoryAspect` цепляется к `Repository+` через Spring AOP. Фильтрует по стеку вызовов — логирует только то, что дёргается из тестов, а не из сервисов
+- **Kafka** — ByteBuddy агент уже загружен Mockito, `AllureKafkaInstrumentation` пользуется этим и патчит `KafkaConsumer.poll()` прямо в байткоде
+- **Ассерты** — `AllureAssertInstrumentation` тем же способом патчит AssertJ (`AbstractAssert`), Spring (`AssertionErrors`) и Hamcrest (`MatcherAssert`)
+- **Логи и конфиг** — `AllureLogsListener` подключается через `META-INF/spring.factories` как `TestExecutionListener`, вешает Logback-appender на время теста и снимает после
 
 ## Структура
 
