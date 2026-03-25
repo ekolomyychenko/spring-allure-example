@@ -6,7 +6,7 @@ This project shows how to wire up detailed Allure reporting into integration tes
 
 ## Stack
 
-- Java 17, Spring Boot 3.2
+- Java 21, Spring Boot 3.5
 - PostgreSQL — order storage
 - Kafka — fires events on order creation
 - REST client (RestTemplate) — outbound integration with a pricing service
@@ -35,7 +35,7 @@ Integration tests live in `src/test/java/com/example/order/OrderIntegrationTest.
 - **KafkaConsumer** — verifies messages published to the topic
 
 **Prerequisites:**
-- Java 17+
+- Java 21+
 - Maven 3.8+
 - Docker (Testcontainers needs it for PostgreSQL and Kafka)
 
