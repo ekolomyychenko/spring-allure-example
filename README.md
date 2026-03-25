@@ -34,13 +34,24 @@
 - **Mockito (`@MockBean`)** — мок `PricingClient` (исходящая REST-интеграция)
 - **KafkaConsumer** — проверка отправки сообщений в топик
 
-**Требования:** Docker должен быть запущен.
+**Требования:**
+- Java 17+
+- Maven 3.8+
+- Docker (Testcontainers поднимает PostgreSQL и Kafka)
 
+Клонировать и перейти в проект:
 ```bash
-# Запуск тестов
-mvn clean test
+git clone <repo-url>
+cd spring-allure-example
+```
 
-# Генерация и открытие Allure-отчёта
+Запуск тестов (Docker должен быть запущен):
+```bash
+mvn clean test
+```
+
+Генерация и открытие Allure-отчёта в браузере:
+```bash
 mvn allure:serve
 ```
 
