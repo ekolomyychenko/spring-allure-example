@@ -1,5 +1,6 @@
 package com.example.order.allure.assertion;
 
+import com.example.order.allure.AllureInstrumentationLogger;
 import io.qameta.allure.Allure;
 import net.bytebuddy.asm.Advice;
 
@@ -25,7 +26,8 @@ public class AllureHamcrestAdvice {
                 }
             }
             Allure.step("Assert: " + label + actual + " " + matcher);
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            AllureInstrumentationLogger.warn("Hamcrest", t);
         }
     }
 }

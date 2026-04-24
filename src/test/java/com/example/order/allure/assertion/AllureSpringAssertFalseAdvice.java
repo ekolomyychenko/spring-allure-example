@@ -1,5 +1,6 @@
 package com.example.order.allure.assertion;
 
+import com.example.order.allure.AllureInstrumentationLogger;
 import io.qameta.allure.Allure;
 import net.bytebuddy.asm.Advice;
 
@@ -9,7 +10,8 @@ public class AllureSpringAssertFalseAdvice {
     public static void onAssertFalse(@Advice.Argument(0) String message) {
         try {
             Allure.step("Assert: " + message);
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            AllureInstrumentationLogger.warn("SpringAssertFalse", t);
         }
     }
 }

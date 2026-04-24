@@ -1,5 +1,6 @@
 package com.example.order.allure.assertion;
 
+import com.example.order.allure.AllureInstrumentationLogger;
 import io.qameta.allure.Allure;
 import net.bytebuddy.asm.Advice;
 
@@ -12,7 +13,8 @@ public class AllureSpringAssertAdvice {
             @Advice.Argument(2) Object actual) {
         try {
             Allure.step("Assert: " + message + " expected " + expected + " = " + actual);
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            AllureInstrumentationLogger.warn("SpringAssertEquals", t);
         }
     }
 }

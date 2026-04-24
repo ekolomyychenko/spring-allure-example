@@ -1,5 +1,6 @@
 package com.example.order.allure.mock;
 
+import com.example.order.allure.AllureInstrumentationLogger;
 import io.qameta.allure.Allure;
 import org.mockito.internal.progress.ThreadSafeMockingProgress;
 import org.mockito.invocation.Invocation;
@@ -71,7 +72,8 @@ public class AllureMockitoHandler<T> implements MockHandler<T> {
             Field field = progress.getClass().getDeclaredField("verificationMode");
             field.setAccessible(true);
             return field.get(progress) != null;
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            AllureInstrumentationLogger.warn("MockitoVerifyDetection", t);
             return false;
         }
     }

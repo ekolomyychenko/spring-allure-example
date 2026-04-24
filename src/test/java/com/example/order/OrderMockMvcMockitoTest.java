@@ -74,8 +74,21 @@ class OrderMockMvcMockitoTest extends BaseIntegrationTest {
 
         List<Order> orders = orderRepository.findAll();
         assertThat(orders).hasSize(1);
+        assertThat(orders).isNotEmpty();
         assertThat(orders.get(0).getProductName()).isEqualTo("laptop");
+        assertThat(orders.get(0).getProductName()).startsWith("lap");
+        assertThat(orders.get(0).getProductName()).endsWith("top");
+        assertThat(orders.get(0).getProductName()).containsIgnoringCase("LAPT");
         assertThat(orders.get(0).getStatus()).isEqualTo(OrderStatus.PRICED);
+        assertThat(orders.get(0).getStatus()).isInstanceOf(OrderStatus.class);
+        assertThat(orders.get(0).getStatus()).isIn(OrderStatus.PRICED, OrderStatus.NEW);
+        assertThat(orders.get(0).getQuantity()).isPositive();
+        assertThat(orders.get(0).getQuantity()).isBetween(1, 10);
+        assertThat(orders.get(0).getPrice()).isGreaterThan(BigDecimal.ZERO);
+        assertThat(orders.get(0).getPrice()).isCloseTo(new BigDecimal("1999.98"), org.assertj.core.data.Offset.offset(new BigDecimal("0.01")));
+        assertThat(orders).allMatch(o -> o.getProductName() != null);
+        assertThat(orders).anyMatch(o -> o.getProductName().equals("laptop"));
+        assertThat(orders).noneMatch(o -> o.getProductName().equals("nonexistent"));
     }
 
     @Test

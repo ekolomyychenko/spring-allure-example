@@ -1,5 +1,6 @@
 package com.example.order.allure.kafka;
 
+import com.example.order.allure.AllureInstrumentationLogger;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.asm.Advice;
@@ -23,7 +24,8 @@ public class AllureKafkaInstrumentation {
                                             .and(ElementMatchers.takesArgument(0, java.time.Duration.class))))
                     )
                     .installOn(instrumentation);
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            AllureInstrumentationLogger.warn("KafkaInstrumentation", t);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.order.allure.assertion;
 
+import com.example.order.allure.AllureInstrumentationLogger;
 import io.qameta.allure.Allure;
 import net.bytebuddy.asm.Advice;
 
@@ -11,7 +12,8 @@ public class AllureHamcrestSimpleAdvice {
             @Advice.Argument(1) Object matcher) {
         try {
             Allure.step("Assert: " + actual + " " + matcher);
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            AllureInstrumentationLogger.warn("Hamcrest", t);
         }
     }
 }

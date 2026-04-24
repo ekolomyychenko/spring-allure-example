@@ -1,5 +1,6 @@
 package com.example.order.allure.wiremock;
 
+import com.example.order.allure.AllureInstrumentationLogger;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import io.qameta.allure.Allure;
@@ -110,7 +111,8 @@ public class AllureWireMockTestListener implements TestExecutionListener {
                         if (server != null && server.isRunning()) {
                             servers.add(server);
                         }
-                    } catch (Exception ignored) {
+                    } catch (Exception e) {
+                        AllureInstrumentationLogger.warn("WireMockDiscovery", e);
                     }
                 }
             }

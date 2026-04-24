@@ -2,54 +2,13 @@
 
 ## 1. AssertJ — расширить список перехватываемых методов
 
-**Файл:** `src/test/java/com/example/order/allure/assertion/AllureAssertInstrumentation.java:26-39`
+**Файл:** `src/test/java/com/example/order/allure/assertion/AllureAssertInstrumentation.java`
 
-Сейчас захардкожены 14 методов. Нужно либо перейти на blacklist-подход (перехватывать все методы `AbstractAssert+`, кроме конфигурационных вроде `as`, `describedAs`, `usingComparator`), либо существенно расширить whitelist.
-
-Пропущенные методы:
-
-### Коллекции и Map
-- [ ] `containsExactly`
-- [ ] `containsExactlyInAnyOrder`
-- [ ] `containsOnly`
-- [ ] `containsAll`
-- [ ] `doesNotContain`
-- [ ] `containsKey`, `containsValue`, `containsEntry`
-- [ ] `containsSubsequence`
-- [ ] `containsAnyOf`
-
-### Строки
-- [ ] `startsWith`, `endsWith`
-- [ ] `matches`
-- [ ] `isBlank`, `isNotBlank`
-- [ ] `containsIgnoringCase`, `isEqualToIgnoringCase`
-- [ ] `hasToString`
-
-### Типы и identity
-- [ ] `isInstanceOf`, `isNotInstanceOf`, `isExactlyInstanceOf`
-- [ ] `isSameAs`, `isNotSameAs`
-- [ ] `isIn`, `isNotIn`
-- [ ] `hasSameClassAs`
-
-### Числа
-- [ ] `isBetween`, `isStrictlyBetween`
-- [ ] `isCloseTo`, `isNotCloseTo`
-- [ ] `isZero`, `isPositive`, `isNegative`, `isNotZero`, `isOne`
-
-### Iterable-специфичные
-- [ ] `hasSizeBetween`, `hasSizeGreaterThan`, `hasSizeLessThan`
-- [ ] `allMatch`, `anyMatch`, `noneMatch`
-- [ ] `allSatisfy`, `anySatisfy`, `noneSatisfy`
-- [ ] `filteredOn`, `extracting`
-- [ ] `first`, `last`, `element`, `singleElement`
-
-### Exception assertions (AbstractThrowableAssert)
-- [ ] `hasMessage`, `hasMessageContaining`, `hasMessageStartingWith`
-- [ ] `hasCause`, `hasNoCause`, `hasRootCause`
-- [ ] `hasStackTraceContaining`
-
-### Альтернативный подход (предпочтительный)
-- [ ] Переделать на blacklist: перехватывать **все** методы `AbstractAssert+`, исключая конфигурационные (`as`, `describedAs`, `withFailMessage`, `overridingErrorMessage`, `usingComparator`, `usingElementComparator`, `withRepresentation`, `withThreadDumpOnError`, `satisfies` без аргументов)
+- [x] Переделано на blacklist-подход: перехватываются **все** public non-static методы `AbstractAssert+`
+- [x] Blacklist конфигурационных методов: `as`, `describedAs`, `withFailMessage`, `overridingErrorMessage`, `usingComparator`, `usingElementComparator`, `usingRecursiveComparison`, `usingDefaultComparator`, `withRepresentation`, `withThreadDumpOnError`, `withAssertionInfo`, `inHexadecimal`, `inBinary`, `extracting`, `filteredOn`, `asInstanceOf`, `asString`, `asList`, internal-методы (`getActual`, `actual`, `info`, `myself`, `objects`, `failWithMessage`, `failWithActualExpectedAndMessage`, `newAbstractIterableAssert`), `equals`/`hashCode`/`toString`
+- [x] `isNotNull` в blacklist — вызывается внутренне из многих assertion-методов, создаёт шум
+- [x] Теперь автоматически покрываются: коллекции (`containsExactly`, `containsOnly`, `doesNotContain`...), строки (`startsWith`, `endsWith`, `matches`, `isBlank`...), типы (`isInstanceOf`, `isSameAs`, `isIn`...), числа (`isBetween`, `isCloseTo`, `isPositive`...), iterable (`allMatch`, `anyMatch`, `noneMatch`...), exceptions (`hasMessage`, `hasCause`...) и все будущие assertion-методы
+- [x] Тест `shouldCreateOrderAndPersistToDb` расширен: добавлены `startsWith`, `endsWith`, `containsIgnoringCase`, `isInstanceOf`, `isIn`, `isPositive`, `isBetween`, `isCloseTo`, `allMatch`, `anyMatch`, `noneMatch`
 
 ---
 
@@ -156,5 +115,6 @@
 
 Во всех Advice-классах исключения полностью подавляются (`suppress = Throwable.class` + `catch (Throwable ignored)`). Это правильно для стабильности тестов, но затрудняет отладку инструментации.
 
-- [ ] Добавить `java.util.logging.Logger` (или SLF4J) с уровнем FINE/DEBUG для подавленных ошибок
-- [ ] Хотя бы в development-режиме видеть, если инструментация ломается
+- [x] Создать `AllureInstrumentationLogger` — shared `java.util.logging.Logger` (уровень FINE) для всех компонентов
+- [x] Заменить все 15 `catch (Throwable ignored)` / `catch (Exception ignored)` на логирование через `AllureInstrumentationLogger.warn(component, t)`
+- [x] Компоненты: AssertJ, Hamcrest, SpringAssert*, SpringFail, KafkaPoll, KafkaInstrumentation, AssertInstrumentation, MockitoVerifyDetection, WireMockDiscovery

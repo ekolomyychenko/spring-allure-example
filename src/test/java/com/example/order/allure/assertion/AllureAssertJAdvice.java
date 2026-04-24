@@ -1,5 +1,6 @@
 package com.example.order.allure.assertion;
 
+import com.example.order.allure.AllureInstrumentationLogger;
 import io.qameta.allure.Allure;
 import net.bytebuddy.asm.Advice;
 
@@ -18,7 +19,8 @@ public class AllureAssertJAdvice {
                 sb.append(" ").append(args[0]);
             }
             Allure.step(sb.toString());
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            AllureInstrumentationLogger.warn("AssertJ", t);
         }
     }
 }

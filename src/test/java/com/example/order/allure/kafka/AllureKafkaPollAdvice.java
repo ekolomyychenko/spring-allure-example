@@ -1,5 +1,6 @@
 package com.example.order.allure.kafka;
 
+import com.example.order.allure.AllureInstrumentationLogger;
 import io.qameta.allure.Allure;
 import io.qameta.allure.AllureLifecycle;
 import io.qameta.allure.model.Status;
@@ -41,7 +42,8 @@ public class AllureKafkaPollAdvice {
                     .setStatus(Status.PASSED));
             Allure.addAttachment("Records", "text/plain", sb.toString());
             lifecycle.stopStep(stepId);
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            AllureInstrumentationLogger.warn("KafkaPoll", t);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.order.allure.assertion;
 
+import com.example.order.allure.AllureInstrumentationLogger;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.asm.Advice;
@@ -19,24 +20,44 @@ public class AllureAssertInstrumentation {
                     .disableClassFormatChanges()
                     .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
 
-                    // AssertJ
+                    // AssertJ — blacklist approach: intercept all assertion methods
+                    // except configuration/fluent-builder methods
                     .type(isSubTypeOf(AbstractAssert.class))
                     .transform((builder, type, cl, module, pd) -> builder
                             .visit(Advice.to(AllureAssertJAdvice.class)
-                                    .on(named("isEqualTo")
-                                            .or(named("isNotEqualTo"))
-                                            .or(named("hasSize"))
-                                            .or(named("contains"))
-                                            .or(named("isGreaterThan"))
-                                            .or(named("isGreaterThanOrEqualTo"))
-                                            .or(named("isLessThan"))
-                                            .or(named("isLessThanOrEqualTo"))
-                                            .or(named("isNull"))
-                                            .or(named("isNotNull"))
-                                            .or(named("isTrue"))
-                                            .or(named("isFalse"))
-                                            .or(named("isEmpty"))
-                                            .or(named("isNotEmpty"))
+                                    .on(isPublic()
+                                            .and(not(isStatic()))
+                                            .and(not(named("as")))
+                                            .and(not(named("describedAs")))
+                                            .and(not(named("withFailMessage")))
+                                            .and(not(named("withRepresentation")))
+                                            .and(not(named("overridingErrorMessage")))
+                                            .and(not(named("usingComparator")))
+                                            .and(not(named("usingElementComparator")))
+                                            .and(not(named("usingRecursiveComparison")))
+                                            .and(not(named("usingDefaultComparator")))
+                                            .and(not(named("withThreadDumpOnError")))
+                                            .and(not(named("withAssertionInfo")))
+                                            .and(not(named("inHexadecimal")))
+                                            .and(not(named("inBinary")))
+                                            .and(not(named("extracting")))
+                                            .and(not(named("filteredOn")))
+                                            .and(not(named("asInstanceOf")))
+                                            .and(not(named("asString")))
+                                            .and(not(named("asList")))
+                                            .and(not(named("newAbstractIterableAssert")))
+                                            .and(not(named("getActual")))
+                                            .and(not(named("actual")))
+                                            .and(not(named("info")))
+                                            .and(not(named("myself")))
+                                            .and(not(named("objects")))
+                                            .and(not(named("throwUnsupportedExceptionOnEquals")))
+                                            .and(not(named("hashCode")))
+                                            .and(not(named("equals")))
+                                            .and(not(named("toString")))
+                                            .and(not(named("failWithMessage")))
+                                            .and(not(named("failWithActualExpectedAndMessage")))
+                                            .and(not(named("isNotNull")))
                                     ))
                     )
 
@@ -69,7 +90,8 @@ public class AllureAssertInstrumentation {
                     )
 
                     .installOn(instrumentation);
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            AllureInstrumentationLogger.warn("AssertInstrumentation", t);
         }
     }
 }
