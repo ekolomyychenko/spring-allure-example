@@ -80,13 +80,13 @@ public class AllureAssertInstrumentation {
                                     .on(named("fail").and(takesArguments(1))))
                     )
 
-                    // Hamcrest MatcherAssert
+                    // Hamcrest MatcherAssert — only patch the 3-arg overload.
+                    // The 2-arg overload delegates to it internally (assertThat("", actual, matcher)),
+                    // so patching both would log every 2-arg call twice.
                     .type(named("org.hamcrest.MatcherAssert"))
                     .transform((builder, type, cl, module, pd) -> builder
                             .visit(Advice.to(AllureHamcrestAdvice.class)
                                     .on(named("assertThat").and(takesArguments(3))))
-                            .visit(Advice.to(AllureHamcrestSimpleAdvice.class)
-                                    .on(named("assertThat").and(takesArguments(2))))
                     )
 
                     .installOn(instrumentation);

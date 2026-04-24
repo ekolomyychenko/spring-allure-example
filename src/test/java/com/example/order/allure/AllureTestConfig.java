@@ -11,11 +11,18 @@ import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcBuilderCus
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 @TestConfiguration
 public class AllureTestConfig {
 
+    private static final AtomicBoolean INSTRUMENTATION_INSTALLED = new AtomicBoolean(false);
+
     @PostConstruct
     void installInstrumentation() {
+        if (!INSTRUMENTATION_INSTALLED.compareAndSet(false, true)) {
+            return;
+        }
         AllureKafkaInstrumentation.install();
         AllureAssertInstrumentation.install();
         RestAssured.filters(new AllureRestAssuredFilter());
