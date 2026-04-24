@@ -25,9 +25,12 @@ import java.util.Map;
 import static org.springframework.test.util.AssertionErrors.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -142,6 +145,35 @@ class OrderMockMvcMockitoTest extends BaseIntegrationTest {
     }
 
     @Test
+    @Story("Create Order")
+    @Severity(SeverityLevel.NORMAL)
+    @DisplayName("POST /api/orders — проверка Hamcrest assertThat 2-arg и 3-arg")
+    void shouldCreateOrderAndVerifyWithHamcrestAssertions() throws Exception {
+        when(pricingClient.getPrice("mouse")).thenReturn(new BigDecimal("25.00"));
+
+        mockMvc.perform(post("/api/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"productName": "mouse", "quantity": 4}
+                                """))
+                .andExpect(status().isCreated());
+
+        List<Order> orders = orderRepository.findAll();
+
+        // 2-arg assertThat (без reason) — раньше не логировался
+        assertThat(orders, hasSize(1));
+        assertThat(orders.get(0).getProductName(), is("mouse"));
+        assertThat(orders.get(0).getQuantity(), equalTo(4));
+        assertThat(orders.get(0).getPrice(), notNullValue());
+        assertThat(orders.get(0).getPrice().intValue(), greaterThan(0));
+
+        // 3-arg assertThat (с reason) — уже логировался
+        assertThat("Order count", orders, hasSize(1));
+        assertThat("Product name should match", orders.get(0).getProductName(), is("mouse"));
+        assertThat("Status should be PRICED", orders.get(0).getStatus().name(), equalTo("PRICED"));
+    }
+
+    @Test
     @Story("Kafka Integration")
     @Severity(SeverityLevel.CRITICAL)
     @DisplayName("POST /api/orders — отправка события в Kafka через MockMvc + Mockito")
@@ -161,6 +193,26 @@ class OrderMockMvcMockitoTest extends BaseIntegrationTest {
             assertThat(records.count()).isGreaterThanOrEqualTo(1);
             assertThat(records.iterator().next().value()).contains("\"status\":\"CREATED\"");
         }
+    }
+
+    @Test
+    @Story("Create Order")
+    @Severity(SeverityLevel.NORMAL)
+    @DisplayName("POST /api/orders — Mockito фазы: stub, call, verify")
+    void shouldDistinguishMockitoPhases() throws Exception {
+        // Mock stub: — настройка поведения мока
+        when(pricingClient.getPrice(eq("speaker"))).thenReturn(new BigDecimal("45.00"));
+
+        // Mock call: — реальный вызов мока через production code (controller → service → client)
+        mockMvc.perform(post("/api/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"productName": "speaker", "quantity": 2}
+                                """))
+                .andExpect(status().isCreated());
+
+        // Mock verify: — проверка что мок был вызван
+        verify(pricingClient, times(1)).getPrice(eq("speaker"));
     }
 
     private KafkaConsumer<String, String> createConsumer() {

@@ -59,10 +59,14 @@
 
 Сейчас перехватываются только `assertEquals(3 args)` и `assertTrue(2 args)`.
 
-- [ ] Добавить `assertNotNull(String, Object)`
-- [ ] Добавить `assertNull(String, Object)`
-- [ ] Добавить `fail(String)` — логировать как failed assertion step
-- [ ] Создать соответствующие Advice-классы для новых методов
+- [x] Добавить `assertNotNull(String, Object)` — `AllureSpringAssertNotNullAdvice.java`
+- [x] Добавить `assertNull(String, Object)` — `AllureSpringAssertNullAdvice.java`
+- [x] Добавить `assertFalse(String, boolean)` — `AllureSpringAssertFalseAdvice.java`
+- [x] Добавить `assertNotEquals(String, Object, Object)` — `AllureSpringAssertNotEqualsAdvice.java`
+- [x] Добавить `fail(String)` — `AllureSpringFailAdvice.java` (логируется как FAILED step)
+- [x] Создать соответствующие Advice-классы для новых методов
+- [x] Зарегистрировать все новые Advice в `AllureAssertInstrumentation.java`
+- [x] Добавить тест `shouldCreateOrderAndVerifyWithSpringAssertions` в `OrderMockMvcMockitoTest`
 
 ---
 
@@ -72,8 +76,9 @@
 
 Перехватывается только `assertThat(String, Object, Matcher)` (3 аргумента). Двухаргументный `assertThat(Object, Matcher)` — самый частый вариант — не логируется.
 
-- [ ] Добавить перехват `assertThat(Object, Matcher)` с `takesArguments(2)`
-- [ ] Создать отдельный Advice-класс `AllureHamcrestSimpleAdvice` (или расширить существующий) для 2-arg варианта
+- [x] Добавить перехват `assertThat(Object, Matcher)` с `takesArguments(2)` — зарегистрирован в `AllureAssertInstrumentation.java`
+- [x] Создать `AllureHamcrestSimpleAdvice.java` для 2-arg варианта
+- [x] Добавить тест `shouldCreateOrderAndVerifyWithHamcrestAssertions` в `OrderMockMvcMockitoTest` — покрывает оба варианта (2-arg и 3-arg)
 
 ---
 
@@ -83,8 +88,9 @@
 
 Парсинг `reason` ищет только `"$."` (jsonPath). Для обычных `assertThat("should be positive", val, greaterThan(0))` reason теряется.
 
-- [ ] Всегда включать reason в вывод шага (если не null/empty)
-- [ ] jsonPath-парсинг оставить как дополнительное форматирование
+- [x] Всегда включать reason в вывод шага (если не null/empty) — обычный reason выводится как `reason: actual matcher`
+- [x] jsonPath-парсинг оставить как дополнительное форматирование — `"$."` по-прежнему извлекается как компактный label
+- [x] Тест уже покрыт в `shouldCreateOrderAndVerifyWithHamcrestAssertions` (3-arg вызовы с reason)
 
 ---
 
@@ -128,9 +134,10 @@
 
 Все mock-взаимодействия выглядят одинаково в отчёте: stubbing (`when`), реальный вызов, verification (`verify`).
 
-- [ ] Определять тип взаимодействия по стектрейсу или через Mockito internals
-- [ ] Использовать разные prefixes: `Mock stub:`, `Mock call:`, `Mock verify:`
-- [ ] Как минимум: фильтровать stubbing-фазу, чтобы не дублировать шаги
+- [x] Определять тип взаимодействия: verify — через `ThreadSafeMockingProgress` (peek verificationMode поле без consume), stub vs call — по наличию production-кода в стектрейсе
+- [x] Использовать разные prefixes: `Mock stub:`, `Mock call:`, `Mock verify:`
+- [x] Фаза определяется ДО `delegate.handle()`, чтобы Mockito internal state не был consumed
+- [x] Добавить тест `shouldDistinguishMockitoPhases` в `OrderMockMvcMockitoTest` — покрывает все три фазы
 
 ---
 

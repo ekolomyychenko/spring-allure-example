@@ -64,6 +64,8 @@ public class AllureAssertInstrumentation {
                     .transform((builder, type, cl, module, pd) -> builder
                             .visit(Advice.to(AllureHamcrestAdvice.class)
                                     .on(named("assertThat").and(takesArguments(3))))
+                            .visit(Advice.to(AllureHamcrestSimpleAdvice.class)
+                                    .on(named("assertThat").and(takesArguments(2))))
                     )
 
                     .installOn(instrumentation);

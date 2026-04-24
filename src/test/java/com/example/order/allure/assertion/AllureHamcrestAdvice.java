@@ -11,17 +11,20 @@ public class AllureHamcrestAdvice {
             @Advice.Argument(1) Object actual,
             @Advice.Argument(2) Object matcher) {
         try {
-            String path = "";
-            if (reason != null) {
+            String label = "";
+            if (reason != null && !reason.isEmpty()) {
+                // попробуем извлечь jsonPath из reason (формат MockMvc jsonPath)
                 int start = reason.indexOf("\"$.");
                 if (start >= 0) {
                     int end = reason.indexOf("\"", start + 1);
                     if (end > start) {
-                        path = reason.substring(start + 1, end) + " ";
+                        label = reason.substring(start + 1, end) + " ";
                     }
+                } else {
+                    label = reason + ": ";
                 }
             }
-            Allure.step("Assert: " + path + actual + " " + matcher);
+            Allure.step("Assert: " + label + actual + " " + matcher);
         } catch (Throwable ignored) {
         }
     }
