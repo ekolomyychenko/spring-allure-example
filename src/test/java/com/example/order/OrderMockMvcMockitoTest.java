@@ -22,6 +22,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
+import static org.springframework.test.util.AssertionErrors.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -112,6 +114,31 @@ class OrderMockMvcMockitoTest extends BaseIntegrationTest {
                                 {"productName": "", "quantity": 0}
                                 """))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Story("Create Order")
+    @Severity(SeverityLevel.NORMAL)
+    @DisplayName("POST /api/orders — проверка Spring AssertionErrors (assertEquals, assertNotEquals, assertTrue, assertFalse, assertNull, assertNotNull)")
+    void shouldCreateOrderAndVerifyWithSpringAssertions() throws Exception {
+        when(pricingClient.getPrice("headphones")).thenReturn(new BigDecimal("79.99"));
+
+        mockMvc.perform(post("/api/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"productName": "headphones", "quantity": 2}
+                                """))
+                .andExpect(status().isCreated());
+
+        List<Order> orders = orderRepository.findAll();
+        assertFalse("Order list should not be empty", orders.isEmpty());
+
+        Order order = orders.get(0);
+        assertNotNull("Order should have an id", order.getId());
+        assertEquals("Product name", "headphones", order.getProductName());
+        assertNotEquals("Price should not be zero", BigDecimal.ZERO, order.getPrice());
+        assertTrue("Quantity should be positive", order.getQuantity() > 0);
+        assertNull("Deleted timestamp should be null", null);
     }
 
     @Test

@@ -45,8 +45,18 @@ public class AllureAssertInstrumentation {
                     .transform((builder, type, cl, module, pd) -> builder
                             .visit(Advice.to(AllureSpringAssertAdvice.class)
                                     .on(named("assertEquals").and(takesArguments(3))))
+                            .visit(Advice.to(AllureSpringAssertNotEqualsAdvice.class)
+                                    .on(named("assertNotEquals").and(takesArguments(3))))
                             .visit(Advice.to(AllureSpringAssertTrueAdvice.class)
                                     .on(named("assertTrue").and(takesArguments(2))))
+                            .visit(Advice.to(AllureSpringAssertFalseAdvice.class)
+                                    .on(named("assertFalse").and(takesArguments(2))))
+                            .visit(Advice.to(AllureSpringAssertNullAdvice.class)
+                                    .on(named("assertNull").and(takesArguments(2))))
+                            .visit(Advice.to(AllureSpringAssertNotNullAdvice.class)
+                                    .on(named("assertNotNull").and(takesArguments(2))))
+                            .visit(Advice.to(AllureSpringFailAdvice.class)
+                                    .on(named("fail").and(takesArguments(1))))
                     )
 
                     // Hamcrest MatcherAssert
